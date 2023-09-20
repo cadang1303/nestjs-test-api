@@ -8,11 +8,11 @@ RUN npm install
 
 COPY . .
 
-RUN npm run prisma:generate
-RUN npm run prisma:migrate
+# RUN npm run prisma:generate
+# RUN npm run prisma:migrate
 
-RUN npm run build
+
 
 EXPOSE 3000
 
-CMD [ "npm", "run", "start:prod" ]
+CMD  npm run build && npm run start:dev
