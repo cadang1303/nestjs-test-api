@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  password   String
+  nickname   String?
+  avatar_url String?
+  last_login DateTime? @db.Timestamptz(3)
+  created_at DateTime  @default(now()) @db.Timestamptz(3)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
+}
+
+model Author {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  title       String?
+  avatar_url  String?
+  created_at  DateTime @default(now()) @db.Timestamptz(3)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+  Course      Course[]
+}
+
+model Course {
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String
+  thumbnail_url String?
+  price         Int
+  author_id     Int
+  created_at    DateTime @default(now()) @db.Timestamptz(3)
+  updated_at    DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  author Author @relation(fields: [author_id], references: [id])
+}
