@@ -5,14 +5,14 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_DATABASE}"
     container_name: postgres
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '${DB_PORT}:${DB_PORT}'
 
   js4ver-app:
     build:
@@ -20,29 +20,29 @@ services:
       dockerfile: Dockerfile
     container_name: nest-docker-postgres
     ports:
-      - '3000:3000'
+      - '${PORT_API}:${PORT_API}'
     depends_on:
       - db
     volumes:
       - ./src:/app/src
 
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: always
-    container_name: nest-pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=pgadmin4
-    ports:
-      - '50004:80'
-    depends_on:
-      - db
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   container_name: nest-pgadmin4
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #     - PGADMIN_DEFAULT_PASSWORD=pgadmin4
+  #   ports:
+  #     - '50004:80'
+  #   depends_on:
+  #     - db
 
-  nginx:
-    image: nginx:latest
-    ports:
-      - "50005:80"
-    volumes:
-      - ./.nginx/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - js4ver-app
+  # nginx:
+  #   image: nginx:latest
+  #   ports:
+  #     - "50005:80"
+  #   volumes:
+  #     - ./.nginx/nginx.conf:/etc/nginx/nginx.conf
+  #   depends_on:
+  #     - js4ver-app
