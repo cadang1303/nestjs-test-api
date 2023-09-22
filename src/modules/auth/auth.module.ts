@@ -3,11 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { PrismaService } from 'src/database/prisma.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { SessionSerializer } from './serializer';
+import { FacebookStrategy } from './strategies/facebook.strategy';
 
 @Module({
   imports: [
@@ -26,9 +26,9 @@ import { SessionSerializer } from './serializer';
   ],
   providers: [
     AuthService,
-    PrismaService,
     JwtStrategy,
     GoogleStrategy,
+    FacebookStrategy,
     SessionSerializer,
   ],
   controllers: [AuthController],

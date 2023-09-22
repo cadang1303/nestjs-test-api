@@ -1,55 +1,55 @@
 import {
-  Body,
   Controller,
-  Delete,
-  Get,
   HttpStatus,
-  Param,
-  Patch,
+  Get,
   Post,
+  Patch,
+  Delete,
   UseGuards,
+  Param,
+  Body,
 } from '@nestjs/common';
-import { CoursesService } from './courses.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CoursesDto } from './dto/courses.dto';
+import { SectionsService } from './sections.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { SectionsDto } from './dto/sections.dto';
 
-@ApiTags('courses')
-@Controller('courses')
-export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+@ApiTags('sections')
+@Controller('sections')
+export class SectionsController {
+  constructor(private readonly sectionsService: SectionsService) {}
 
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'List of courses is fetched successfully',
+    description: 'List of sections is fetched successfully',
   })
   @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error.',
   })
-  @Get()
-  getCourses(): Promise<any> {
-    return this.coursesService.getCourses();
+  @Get(':course_id')
+  getSectionsByCourse(@Param('course_id') course_id: number): Promise<any> {
+    return this.sectionsService.getSectionsByCourse(course_id);
   }
 
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'A course is fetched successfully',
+    description: 'A section is fetched successfully',
   })
   @ApiResponse({
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error.',
   })
   @Get(':id')
-  getCoursesById(@Param('id') id: number): Promise<any> {
-    return this.coursesService.getCourseById(id);
+  getSectionById(@Param('id') id: number): Promise<any> {
+    return this.sectionsService.getSectionById(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'A course is created successfully',
+    description: 'A new section is created successfully',
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -59,16 +59,16 @@ export class CoursesController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error.',
   })
-  @Post()
-  createCourse(@Body() coursesDto: CoursesDto): Promise<void> {
-    return this.coursesService.createCourse(coursesDto);
+  @Post('')
+  createSection(@Body() sectionsDto: SectionsDto): Promise<void> {
+    return this.sectionsService.createSection(sectionsDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'A course is updated successfully',
+    description: 'An section is updated successfully',
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -79,18 +79,18 @@ export class CoursesController {
     description: 'Internal server error.',
   })
   @Patch(':id')
-  updateCourse(
+  updateSection(
     @Param() id: number,
-    @Body() coursesDto: CoursesDto,
+    @Body() sectionsDto: SectionsDto,
   ): Promise<void> {
-    return this.coursesService.updateCourse(id, coursesDto);
+    return this.sectionsService.updateSection(sectionsDto, id);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'A course is deleted successfully',
+    description: 'A section is deleted successfully',
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -101,7 +101,7 @@ export class CoursesController {
     description: 'Internal server error.',
   })
   @Delete(':id')
-  deleteCourse(@Param() id: number): Promise<void> {
-    return this.coursesService.deleteCourse(id);
+  deleteSection(@Param() id: number): Promise<void> {
+    return this.sectionsService.deleteSection(id);
   }
 }

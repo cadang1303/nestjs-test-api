@@ -19,6 +19,7 @@ import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { GoogleAuthGuard } from './guards/google.guard';
+import { FacebookAuthGuard } from './guards/facebook.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -64,21 +65,34 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid credentials.',
   })
-  @Get('logout')
-  signout(@Res() res: Response): Promise<any> {
-    return this.authService.logout(res);
+  @Post('logout')
+  signout(@Req() req: Request): Promise<any> {
+    return this.authService.logout(req);
   }
 
   @ApiOAuth2(['profile', 'email'])
   @UseGuards(GoogleAuthGuard)
   @Get('/login/google')
   signInGoogle() {
-    return { message: 'logged in' };
+    return { message: 'logged in using google' };
   }
 
   @UseGuards(GoogleAuthGuard)
   @Get('/google/redirect')
   googleCallback(@Req() req: Request, @Res() res: Response) {
-    return this.authService.loginGoogle(req, res);
+    return this.authService.loginSocial(req, res);
+  }
+
+  @ApiOAuth2(['email'])
+  @UseGuards(FacebookAuthGuard)
+  @Get('/login/facebook')
+  signInFacebook() {
+    return { message: 'logged in using facebook' };
+  }
+
+  @UseGuards(FacebookAuthGuard)
+  @Get('/facebook/redirect')
+  facebookCallback(@Req() req: Request, @Res() res: Response) {
+    return this.authService.loginSocial(req, res);
   }
 }

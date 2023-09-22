@@ -79,11 +79,15 @@ export class AuthService {
     return access_token;
   }
 
-  async logout(res: Response): Promise<any> {
-    return res.send({ message: 'Logged out successfully' });
+  async logout(req: Request): Promise<any> {
+    return req.logout((err) => {
+      if (err) {
+        throw err;
+      }
+    });
   }
 
-  async loginGoogle(req: Request, res: Response): Promise<any> {
+  async loginSocial(req: Request, res: Response): Promise<any> {
     try {
       const reqUser: any = req.user;
       const { email, firstName, lastName, picture } = reqUser;

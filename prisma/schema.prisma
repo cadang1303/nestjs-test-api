@@ -11,14 +11,16 @@ datasource db {
 }
 
 model User {
-  id         Int       @id @default(autoincrement())
-  email      String    @unique
-  password   String
-  nickname   String?
-  avatar_url String?
-  last_login DateTime? @db.Timestamptz(3)
-  created_at DateTime  @default(now()) @db.Timestamptz(3)
-  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
+  id          Int           @id @default(autoincrement())
+  email       String        @unique
+  password    String
+  nickname    String?
+  avatar_url  String?
+  last_login  DateTime?     @db.Timestamptz(3)
+  created_at  DateTime      @default(now()) @db.Timestamptz(3)
+  updated_at  DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
+  User_Lesson User_Lesson[]
+  Enrollment  Enrollment[]
 }
 
 model Author {
@@ -42,5 +44,81 @@ model Course {
   created_at    DateTime @default(now()) @db.Timestamptz(3)
   updated_at    DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
-  author Author @relation(fields: [author_id], references: [id])
+  author     Author       @relation(fields: [author_id], references: [id])
+  Section    Section[]
+  Enrollment Enrollment[]
+}
+
+model Discount {
+  id         Int          @id @default(autoincrement())
+  code       String       @unique
+  value      Int
+  valid_date String
+  max        Int?
+  created_at DateTime     @default(now()) @db.Timestamptz(3)
+  updated_at DateTime     @default(now()) @updatedAt @db.Timestamptz(3)
+  Enrollment Enrollment[]
+}
+
+model Enrollment {
+  user_id     Int
+  course_id   Int
+  discount_id Int?
+  created_at  DateTime  @default(now()) @db.Timestamptz(3)
+  updated_at  DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
+  user        User      @relation(fields: [user_id], references: [id])
+  course      Course    @relation(fields: [course_id], references: [id])
+  discount    Discount? @relation(fields: [discount_id], references: [id])
+
+  @@unique([user_id, course_id])
+}
+
+model Section {
+  id          Int      @id @default(autoincrement())
+  course_id   Int
+  title       String
+  description String
+  created_at  DateTime @default(now()) @db.Timestamptz(3)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  course Course   @relation(fields: [course_id], references: [id])
+  Lesson Lesson[]
+}
+
+model Lesson {
+  id               Int      @id @default(autoincrement())
+  section_id       Int
+  challenge_id     Int?
+  type             Int
+  video_url        String?
+  markdown_content String?
+  ref_link         String?
+  created_at       DateTime @default(now()) @db.Timestamptz(3)
+  updated_at       DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  section     Section       @relation(fields: [section_id], references: [id])
+  challenge   Challenge?    @relation(fields: [challenge_id], references: [id])
+  User_Lesson User_Lesson[]
+}
+
+model Challenge {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  created_at  DateTime @default(now()) @db.Timestamptz(3)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  Lesson Lesson[]
+}
+
+model User_Lesson {
+  user_id      Int
+  lesson_id    Int
+  watched_time String
+  created_at   DateTime @default(now()) @db.Timestamptz(3)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+  user         User     @relation(fields: [user_id], references: [id])
+  lesson       Lesson   @relation(fields: [lesson_id], references: [id])
+
+  @@unique([user_id, lesson_id])
 }
