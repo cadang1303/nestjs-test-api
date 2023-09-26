@@ -7,11 +7,17 @@ import { AuthorsModule } from './modules/authors/authors.module';
 import { PrismaModule } from './database/prisma.module';
 import { SectionsModule } from './modules/sections/sections.module';
 import { LessonsModule } from './modules/lessons/lessons.module';
+import { UploadModule } from './modules/upload/upload.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: [`.env`],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
     }),
     PrismaModule,
     AuthModule,
@@ -20,6 +26,7 @@ import { LessonsModule } from './modules/lessons/lessons.module';
     AuthorsModule,
     SectionsModule,
     LessonsModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],
