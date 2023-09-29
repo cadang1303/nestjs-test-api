@@ -1,26 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import { Transcoder } from 'simple-hls';
-import * as fluentFfmpeg from 'fluent-ffmpeg';
+import { exec } from 'child_process';
+import { IMG_UPLOAD_DIR, VIDEO_UPLOAD_DIR } from 'src/constants/index';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UploadService {
   constructor() {}
 
-  async handleUploadVideo(file: Express.Multer.File) {
-    if (!fs.existsSync('./uploads')) {
-      fs.mkdirSync('./uploads');
+  async handleUploadImg(file: Express.Multer.File) {
+    if (!fs.existsSync(IMG_UPLOAD_DIR)) {
+      fs.mkdirSync(IMG_UPLOAD_DIR);
     }
-    const id = Math.random().toString(36).substring(7);
-    fs.mkdirSync('./uploads/' + id);
-    const fileName = './uploads/' + id + '/' + file.originalname;
-    fs.writeFileSync(fileName, file.buffer);
-    const bitrate = await this.getMaxBitrate(fileName);
-    console.log(bitrate, 'bitrate');
-    return this.convertVideoToHls(fileName, id);
+
+    const id = randomUUID();
+    const filePath = IMG_UPLOAD_DIR + '/' + id + file.originalname;
+    fs.writeFileSync(filePath, file.buffer);
+
+    return {
+      message: 'Uploaded Successfully',
+      data: filePath.replace('uploads', ''),
+    };
   }
 
-  async convertVideoToHls(fileName: string, id: string) {
+  async handleUploadVideo(file: Express.Multer.File) {
+    if (!fs.existsSync(VIDEO_UPLOAD_DIR)) {
+      fs.mkdirSync(VIDEO_UPLOAD_DIR);
+    }
+    const id = randomUUID();
+    fs.mkdirSync(VIDEO_UPLOAD_DIR + '/' + id);
+    const filePath = VIDEO_UPLOAD_DIR + '/' + id + '/' + file.originalname;
+    fs.writeFileSync(filePath, file.buffer);
+
+    return this.convertVideoToHls(filePath, id);
+  }
+
+  async convertVideoToHls(filePath: string, id: string) {
     const customRenditions = [
       {
         width: 640,
@@ -71,31 +87,46 @@ export class UploadService {
         master_title: '1080p',
       },
     ];
-
-    const t = new Transcoder(fileName, './uploads/' + id, {
-      renditions: customRenditions,
+    const resolution = await this.getResolution(filePath);
+    const renditions = [];
+    if (resolution) {
+      customRenditions.forEach((item) => {
+        if (resolution?.height >= item.height) {
+          renditions.push(item);
+        }
+      });
+    }
+    const t = new Transcoder(filePath, VIDEO_UPLOAD_DIR + '/' + id, {
+      renditions: renditions,
     });
     try {
       await t.transcode();
-      fs.unlinkSync(fileName);
-      return { message: 'Uploaded successfully' };
+      fs.unlinkSync(filePath);
+      return { message: 'Uploaded successfully', data: id };
     } catch (e) {
       console.log('Something went wrong');
     }
   }
 
-  async getMaxBitrate(fileName: string) {
-    const ffmpeg = fluentFfmpeg(fileName);
-    let bitrate: string;
-
-    ffmpeg.ffprobe((err, data) => {
-      if (err) {
-        console.log(err);
-      }
-
-      bitrate = data?.streams[0]?.bit_rate;
+  getResolution(filePath: string) {
+    return new Promise<{
+      width: number;
+      height: number;
+    }>((resolve, reject) => {
+      exec(
+        `ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${filePath}`,
+        (err, stdout, stderr) => {
+          if (err) {
+            return reject(err);
+          }
+          const resolution = stdout.trim().split('x');
+          const [width, height] = resolution;
+          resolve({
+            width: Number(width),
+            height: Number(height),
+          });
+        },
+      );
     });
-
-    return bitrate;
   }
 }

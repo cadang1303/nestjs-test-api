@@ -19,7 +19,6 @@ import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { GoogleAuthGuard } from './guards/google.guard';
-import { FacebookAuthGuard } from './guards/facebook.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -80,19 +79,6 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('/google/redirect')
   googleCallback(@Req() req: Request, @Res() res: Response) {
-    return this.authService.loginSocial(req, res);
-  }
-
-  @ApiOAuth2(['email'])
-  @UseGuards(FacebookAuthGuard)
-  @Get('/login/facebook')
-  signInFacebook() {
-    return { message: 'logged in using facebook' };
-  }
-
-  @UseGuards(FacebookAuthGuard)
-  @Get('/facebook/redirect')
-  facebookCallback(@Req() req: Request, @Res() res: Response) {
     return this.authService.loginSocial(req, res);
   }
 }
