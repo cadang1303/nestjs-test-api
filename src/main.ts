@@ -18,7 +18,7 @@ async function bootstrap() {
   app.enableCors(cors);
   app.use(
     session({
-      secret: '12312412',
+      secret: process.env.JWT_SECRET,
       saveUninitialized: false,
       resave: false,
       cookie: {},

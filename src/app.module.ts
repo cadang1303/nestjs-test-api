@@ -10,6 +10,7 @@ import { LessonsModule } from './modules/lessons/lessons.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { EnvironmentModule } from './common/env.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { join } from 'path';
     SectionsModule,
     LessonsModule,
     UploadModule,
+    EnvironmentModule,
   ],
   controllers: [],
   providers: [],

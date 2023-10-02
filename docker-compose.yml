@@ -38,11 +38,13 @@ services:
     depends_on:
       - db
 
-  # nginx:
-  #   image: nginx:latest
-  #   ports:
-  #     - "50005:80"
-  #   volumes:
-  #     - ./.nginx/nginx.conf:/etc/nginx/nginx.conf
-  #   depends_on:
-  #     - js4ver-app
+  nginx:
+    image: nginx:latest
+    ports:
+      - "50005:80"
+    volumes:
+      - ./.nginx/nginx.conf:/etc/nginx/nginx.conf
+    links:
+      - js4ver-app
+    depends_on:
+      - js4ver-app

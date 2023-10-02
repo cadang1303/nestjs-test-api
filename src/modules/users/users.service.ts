@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { Prisma } from '@prisma/client';
+import { UsersDto } from './dto/users.dto';
+import { UploadService } from '../upload/upload.service';
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private uploadService: UploadService,
+  ) {}
 
   async getUsers(): Promise<any> {
     try {
@@ -33,7 +37,11 @@ export class UsersService {
     }
   }
 
-  async updateUser(id: number, data: Prisma.UserCreateInput): Promise<any> {
+  async updateUser(
+    id: number,
+    { email, nickname }: UsersDto,
+    file: Express.Multer.File,
+  ): Promise<any> {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
@@ -41,12 +49,22 @@ export class UsersService {
         },
       });
 
+      let upload = '';
+
       if (user) {
+        if (file) {
+          const res = await this.uploadService.handleUploadImg(file);
+          upload = res.data;
+        }
         await this.prisma.user.update({
           where: {
             id: Number(id),
           },
-          data,
+          data: {
+            email,
+            nickname,
+            avatar_url: upload,
+          },
         });
 
         return { message: 'updated successfully' };

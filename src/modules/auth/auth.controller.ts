@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiExcludeEndpoint,
   ApiOAuth2,
   ApiResponse,
   ApiTags,
@@ -76,6 +77,7 @@ export class AuthController {
     return { message: 'logged in using google' };
   }
 
+  @ApiExcludeEndpoint()
   @UseGuards(GoogleAuthGuard)
   @Get('/google/redirect')
   googleCallback(@Req() req: Request, @Res() res: Response) {

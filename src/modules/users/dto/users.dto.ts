@@ -10,7 +10,7 @@ export class UsersDto {
 
   @ApiProperty()
   @IsString()
-  @MinLength(8)
+  @MinLength(6)
   @MaxLength(32)
   @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
     message: 'password is too weak',
@@ -23,7 +23,6 @@ export class UsersDto {
   @MaxLength(32)
   nickname: string;
 
-  @ApiProperty()
-  @IsString()
-  avatar_url: string;
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
+  file: Express.Multer.File;
 }

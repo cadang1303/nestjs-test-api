@@ -9,9 +9,20 @@ import {
   Post,
   Delete,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  // UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { LessonsDto } from './dto/lessons.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+// import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('lessons')
 @Controller('lessons')
@@ -58,9 +69,14 @@ export class LessonsController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error.',
   })
+  @ApiConsumes('multipart/form-data')
   @Post('')
-  createLesson(@Body() lessonsDto: any): Promise<void> {
-    return this.lessonsService.createLesson(lessonsDto);
+  @UseInterceptors(FileInterceptor('file'))
+  createLesson(
+    @Body() lessonsDto: LessonsDto,
+    @UploadedFile() file: Express.Multer.File,
+  ): any {
+    return this.lessonsService.createLesson(lessonsDto, file);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -78,7 +94,10 @@ export class LessonsController {
     description: 'Internal server error.',
   })
   @Patch(':id')
-  updateLesson(@Param() id: number, @Body() lessonsDto: any): Promise<void> {
+  updateLesson(
+    @Param() id: number,
+    @Body() lessonsDto: LessonsDto,
+  ): Promise<void> {
     return this.lessonsService.updateLesson(lessonsDto, id);
   }
 

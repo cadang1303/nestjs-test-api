@@ -4,10 +4,11 @@ import { Transcoder } from 'simple-hls';
 import { exec } from 'child_process';
 import { IMG_UPLOAD_DIR, VIDEO_UPLOAD_DIR } from 'src/constants/index';
 import { randomUUID } from 'crypto';
+import { EnvironmentService } from 'src/common/env.service';
 
 @Injectable()
 export class UploadService {
-  constructor() {}
+  constructor(private readonly envi: EnvironmentService) {}
 
   async handleUploadImg(file: Express.Multer.File) {
     if (!fs.existsSync(IMG_UPLOAD_DIR)) {
@@ -17,10 +18,11 @@ export class UploadService {
     const id = randomUUID();
     const filePath = IMG_UPLOAD_DIR + '/' + id + file.originalname;
     fs.writeFileSync(filePath, file.buffer);
-
     return {
       message: 'Uploaded Successfully',
-      data: filePath.replace('uploads', ''),
+      data: this.envi.isProduction()
+        ? `${process.env.HOST}/imgs/${id}${file.originalname}`
+        : `http://localhost:${process.env.PORT_API}/imgs/${id}${file.originalname}`,
     };
   }
 
@@ -102,7 +104,12 @@ export class UploadService {
     try {
       await t.transcode();
       fs.unlinkSync(filePath);
-      return { message: 'Uploaded successfully', data: id };
+      return {
+        message: 'Uploaded successfully',
+        data: this.envi.isProduction()
+          ? `${process.env.HOST}/videos/${id}/index.m3u8`
+          : `http://localhost:${process.env.PORT_API}/videos/${id}/index.m3u8`,
+      };
     } catch (e) {
       console.log('Something went wrong');
     }

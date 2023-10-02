@@ -4,11 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { Prisma } from '@prisma/client';
+import { LessonsDto } from './dto/lessons.dto';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class LessonsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private uploadService: UploadService,
+  ) {}
   async getLessonsInSection(section_id: number): Promise<any> {
     try {
       const section = await this.prisma.section.findUnique({
@@ -51,10 +55,27 @@ export class LessonsService {
     }
   }
 
-  async createLesson(data: any): Promise<any> {
+  async createLesson(
+    { challenge_id, section_id, type, markdown_content, ref_link }: LessonsDto,
+    file: Express.Multer.File,
+  ): Promise<any> {
     try {
-      await this.prisma.lesson.create({ data });
-      return { message: 'success' };
+      let upload = '';
+      if (file) {
+        const res = await this.uploadService.handleUploadVideo(file);
+        upload = res.data;
+      }
+      const data = await this.prisma.lesson.create({
+        data: {
+          challenge_id,
+          section_id,
+          type,
+          markdown_content,
+          ref_link,
+          video_url: upload,
+        },
+      });
+      return { message: 'success', data: data };
     } catch (error) {
       return {
         status: error.code,
@@ -63,7 +84,7 @@ export class LessonsService {
     }
   }
 
-  async updateLesson(data: Prisma.LessonUpdateInput, id: number): Promise<any> {
+  async updateLesson(data: LessonsDto, id: number): Promise<any> {
     try {
       const lesson = await this.prisma.lesson.findUnique({
         where: {

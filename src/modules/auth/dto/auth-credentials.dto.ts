@@ -5,7 +5,7 @@ export class AuthCredentialsDto {
   @ApiProperty()
   @IsString()
   @MinLength(4)
-  @MaxLength(20)
+  @MaxLength(32)
   email: string;
 
   @ApiProperty()
