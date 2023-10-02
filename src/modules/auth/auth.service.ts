@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/database/prisma.service';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -44,12 +44,11 @@ export class AuthService {
       if (user) {
         const isValid = await bcrypt.compare(password, user.password);
         if (isValid) {
-          const access_token: string = await this.jwtService.signAsync({
+          const access_token = await this.handleLogin({
             id: user.id,
             email: user.email,
           });
-          res.cookie('js4ever_token', access_token);
-          return { access_token };
+          return res.send({ access_token });
         }
       } else {
         throw new UnauthorizedException();
@@ -63,14 +62,60 @@ export class AuthService {
     }
   }
 
-  async logout(res: Response): Promise<any> {
-    res.clearCookie('js4ever_token');
-    return res.send({ message: 'Logged out successfully' });
+  async handleLogin(data: any) {
+    const { id, email } = data;
+    await this.prisma.user.update({
+      where: {
+        id: id,
+      },
+      data: {
+        last_login: new Date(),
+      },
+    });
+    const access_token: string = await this.jwtService.signAsync({
+      id,
+      email,
+    });
+    return access_token;
   }
 
-  // async getUser(): Promise<any> {}
+  async logout(req: Request): Promise<any> {
+    return req.logout((err) => {
+      if (err) {
+        throw err;
+      }
+    });
+  }
 
-  // async updateUser(): Promise<any> {}
+  async loginSocial(req: Request, res: Response): Promise<any> {
+    try {
+      const reqUser: any = req.user;
+      const { email, firstName, lastName, picture } = reqUser;
+      const nickname = firstName + ' ' + lastName;
+      const avatar_url = picture;
+      const user = await this.prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+      if (!user) {
+        const newUser = await this.prisma.user.create({
+          data: {
+            email,
+            nickname,
+            avatar_url,
+            password: '',
+          },
+        });
 
-  // async deleteUser(): Promise<any> {}
+        const access_token = await this.handleLogin({ id: newUser.id, email });
+        return res.send({ access_token });
+      } else {
+        const access_token = await this.handleLogin({ id: user.id, email });
+        return res.send({ access_token });
+      }
+    } catch (error) {
+      return { status: error.code, message: error.message };
+    }
+  }
 }

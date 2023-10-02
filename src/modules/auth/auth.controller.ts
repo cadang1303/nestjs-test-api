@@ -1,8 +1,24 @@
-import { Body, Controller, Post, HttpStatus, Res } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  HttpStatus,
+  Res,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOAuth2,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { JwtAuthGuard } from './guards/jwt.guard';
+import { GoogleAuthGuard } from './guards/google.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -38,12 +54,31 @@ export class AuthController {
     return this.authService.signIn(authCredentialsDto, res);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Login successfully.',
   })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid credentials.',
+  })
   @Post('logout')
-  signout(@Res() res: Response): Promise<any> {
-    return this.authService.logout(res);
+  signout(@Req() req: Request): Promise<any> {
+    return this.authService.logout(req);
+  }
+
+  @ApiOAuth2(['profile', 'email'])
+  @UseGuards(GoogleAuthGuard)
+  @Get('/login/google')
+  signInGoogle() {
+    return { message: 'logged in using google' };
+  }
+
+  @UseGuards(GoogleAuthGuard)
+  @Get('/google/redirect')
+  googleCallback(@Req() req: Request, @Res() res: Response) {
+    return this.authService.loginSocial(req, res);
   }
 }
