@@ -7,11 +7,14 @@ import {
   Body,
   Patch,
   Delete,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { ApiBearerAuth, ApiTags, ApiResponse } from '@nestjs/swagger';
 import { UsersDto } from './dto/users.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('users')
 @Controller('users')
@@ -63,8 +66,13 @@ export class UsersController {
     description: 'Not Found.',
   })
   @Patch(':id')
-  updateUser(@Param('id') id: number, @Body() data: UsersDto): Promise<any> {
-    return this.usersService.updateUser(id, data);
+  @UseInterceptors(FileInterceptor('file'))
+  updateUser(
+    @Param('id') id: number,
+    @Body() data: UsersDto,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<any> {
+    return this.usersService.updateUser(id, data, file);
   }
 
   @UseGuards(JwtAuthGuard)
