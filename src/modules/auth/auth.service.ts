@@ -3,6 +3,7 @@ import {
   ConflictException,
   InternalServerErrorException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/database/prisma.service';
@@ -114,6 +115,43 @@ export class AuthService {
         const access_token = await this.handleLogin({ id: user.id, email });
         return res.send({ access_token });
       }
+    } catch (error) {
+      return { status: error.code, message: error.message };
+    }
+  }
+
+  async resetPassword(data: any): Promise<any> {
+    try {
+      const { email, current, newPassword } = data;
+      const user = await this.prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException();
+      }
+
+      const isValid = await bcrypt.compare(current, user.password);
+      if (!isValid) {
+        throw new UnauthorizedException();
+      }
+
+      const salt = await bcrypt.genSalt();
+
+      let password = '';
+      password = await bcrypt.hash(newPassword, salt);
+
+      await this.prisma.user.update({
+        where: {
+          email,
+        },
+        data: {
+          password,
+        },
+      });
+      return { message: 'Reset password successfully.' };
     } catch (error) {
       return { status: error.code, message: error.message };
     }

@@ -122,7 +122,7 @@ export class UploadService {
     }>((resolve, reject) => {
       exec(
         `ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${filePath}`,
-        (err, stdout, stderr) => {
+        (err, stdout) => {
           if (err) {
             return reject(err);
           }

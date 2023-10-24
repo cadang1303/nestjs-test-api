@@ -8,11 +8,19 @@ import {
   Delete,
   UseGuards,
   Body,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthorsService } from './authors.service';
 import { AuthorsDto } from './dto/authors.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('authors')
 @Controller('authors')
@@ -58,9 +66,14 @@ export class AuthorsController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error.',
   })
+  @ApiConsumes('multipart/form-data')
   @Post('')
-  createAuthor(@Body() authorsDto: AuthorsDto): Promise<void> {
-    return this.authorsService.createAuthor(authorsDto);
+  @UseInterceptors(FileInterceptor('file'))
+  createAuthor(
+    @Body() authorsDto: AuthorsDto,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<void> {
+    return this.authorsService.createAuthor(authorsDto, file);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -77,12 +90,15 @@ export class AuthorsController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: 'Internal server error.',
   })
+  @ApiConsumes('multipart/form-data')
   @Patch(':id')
+  @UseInterceptors(FileInterceptor('file'))
   updateAuthor(
     @Param() id: number,
     @Body() authorsDto: AuthorsDto,
+    @UploadedFile() file: Express.Multer.File,
   ): Promise<void> {
-    return this.authorsService.updateAuthor(id, authorsDto);
+    return this.authorsService.updateAuthor(id, authorsDto, file);
   }
 
   @UseGuards(JwtAuthGuard)

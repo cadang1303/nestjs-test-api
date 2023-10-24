@@ -12,7 +12,12 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
-import { ApiBearerAuth, ApiTags, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiResponse,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import { UsersDto } from './dto/users.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -65,6 +70,7 @@ export class UsersController {
     status: HttpStatus.NOT_FOUND,
     description: 'Not Found.',
   })
+  @ApiConsumes('multipart/form-data')
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   updateUser(

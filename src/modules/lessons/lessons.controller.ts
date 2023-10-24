@@ -22,7 +22,6 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { LessonsDto } from './dto/lessons.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-// import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('lessons')
 @Controller('lessons')

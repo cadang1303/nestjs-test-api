@@ -83,4 +83,23 @@ export class AuthController {
   googleCallback(@Req() req: Request, @Res() res: Response) {
     return this.authService.loginSocial(req, res);
   }
+
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Reset password successfully.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Invalid credentials.',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid credentials.',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Post('/reset')
+  resetPassword(@Body() data: any) {
+    return this.authService.resetPassword(data);
+  }
 }

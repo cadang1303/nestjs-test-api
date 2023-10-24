@@ -2,14 +2,18 @@ FROM node:18
 
 WORKDIR /app
 
+VOLUME [ "/uploads" ]
+
+RUN mkdir /uploads
+RUN mkdir /uploads/imgs
+RUN mkdir /uploads/videos
+
 COPY package*.json ./
 
 RUN npm install
 
 COPY . .
 
-# RUN npm run prisma:generate
-# RUN npm run prisma:migrate
 
 EXPOSE 3000
 

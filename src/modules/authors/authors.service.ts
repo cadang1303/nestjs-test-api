@@ -1,3 +1,4 @@
+import { UploadService } from './../upload/upload.service';
 import {
   Injectable,
   InternalServerErrorException,
@@ -8,7 +9,10 @@ import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
 export class AuthorsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private uploadService: UploadService,
+  ) {}
   async getAuthors() {
     try {
       const data = await this.prisma.author.findMany();
@@ -40,8 +44,15 @@ export class AuthorsService {
     }
   }
 
-  async createAuthor(data: Prisma.AuthorCreateInput): Promise<any> {
+  async createAuthor(
+    data: Prisma.AuthorCreateInput,
+    file: Express.Multer.File,
+  ): Promise<any> {
     try {
+      if (file) {
+        const res = await this.uploadService.handleUploadImg(file);
+        data.avatar_url = res.data;
+      }
       await this.prisma.author.create({ data });
       return { message: 'success' };
     } catch (error) {
@@ -52,7 +63,11 @@ export class AuthorsService {
     }
   }
 
-  async updateAuthor(id: number, data: Prisma.AuthorUpdateInput): Promise<any> {
+  async updateAuthor(
+    id: number,
+    data: Prisma.AuthorUpdateInput,
+    file: Express.Multer.File,
+  ): Promise<any> {
     try {
       const author = await this.prisma.author.findUnique({
         where: {
@@ -61,6 +76,11 @@ export class AuthorsService {
       });
 
       if (author) {
+        if (file) {
+          const res = await this.uploadService.handleUploadImg(file);
+          data.avatar_url = res.data;
+        }
+
         await this.prisma.author.update({
           where: {
             id,
